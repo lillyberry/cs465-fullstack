@@ -6,6 +6,7 @@ import { TripCardComponent } from '../trip-card/trip-card';
 import { TripDataService } from '../services/trip-data.service';
 import { Trip } from '../models/trips';
 import { Router } from '@angular/router';
+import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
   selector: 'app-trip-listing',
@@ -15,7 +16,6 @@ import { Router } from '@angular/router';
   styleUrls: ['./trip-listing.css'], 
   providers: [TripDataService]
 })
-
 export class TripListing implements OnInit {
 
   trips!: Trip[];
@@ -23,36 +23,41 @@ export class TripListing implements OnInit {
 
   constructor(
     private TripDataService: TripDataService,
-    private router: Router){
-      console.log('trip-listing constructor');
+    private router: Router,
+    private authenticationService: AuthenticationService
+  ){
+    console.log('trip-listing constructor');
   }
 
   public addTrip(): void {
     this.router.navigate(['add-trip']);
   }
 
-  private getStuff(): void{
+  private getStuff(): void {
     this.TripDataService.getTrips()
-    .subscribe({
-      next: (value: any) => {
-        this.trips = value;
-        if(value.length > 0)
-        {
-          this.message = 'There are ' + value.length + ' trips available.';
+      .subscribe({
+        next: (value: any) => {
+          this.trips = value;
+          if(value.length > 0) {
+            this.message = 'There are ' + value.length + ' trips available.';
+          } else {
+            this.message = 'There were no trips retrieved from the database';
+          }
+          console.log(this.message);
+        },
+        error: (error: any) => {
+          console.log('Error: ' + error);
         }
-        else{
-          this.message = 'There were no trips retrieved from the database';
-        }
-        console.log(this.message);
-      },
-      error: (error: any) => {
-        console.log('Error: ' + error);
-      }
-    })
+      });
   }
 
   ngOnInit(): void {
     console.log('ngOnInit');
     this.getStuff();
+  }
+
+  // Delegates logged-in check to AuthenticationService
+  public isLoggedIn(): boolean {
+    return this.authenticationService.isLoggedIn();
   }
 }
